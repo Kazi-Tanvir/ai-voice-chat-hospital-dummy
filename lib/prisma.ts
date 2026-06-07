@@ -10,7 +10,7 @@ const prismaClientSingleton = () => {
   // Parse credentials and host info from DATABASE_URL
   const url = new URL(connectionString);
   const host = url.hostname || 'localhost';
-  const port = url.port ? parseInt(url.port) : 3306;
+  const port = url.port ? parseInt(url.port) : 4000;
   const user = url.username || 'root';
   const password = url.password ? decodeURIComponent(url.password) : undefined;
   const database = url.pathname ? url.pathname.replace(/^\//, '') : undefined;
@@ -22,6 +22,8 @@ const prismaClientSingleton = () => {
     password,
     database,
     connectionLimit: 10,
+    allowPublicKeyRetrieval: true,
+    ssl: true,
   });
   
   return new PrismaClient({ adapter });
