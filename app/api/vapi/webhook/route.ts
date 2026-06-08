@@ -41,6 +41,65 @@ function matchTimeSlot(schedule: { timeSlots: string }, timeSlot: string) {
   );
 }
 
+// ─── Tool handler: getDoctorSchedule ───
+async function handleGetDoctorSchedule(args: Record<string, unknown>) {
+  const { searchQuery, searchType } = args as {
+    searchQuery?: string;
+    searchType?: 'name' | 'specialty' | 'all';
+  };
+
+  try {
+    let doctors;
+
+    if (searchType === 'all' || (!searchQuery && !searchType)) {
+      // Return all active doctors with their schedules
+      doctors = await prisma.doctor.findMany({
+        where: { isActive: true },
+        include: { schedules: true },
+        orderBy: { field: 'asc' },
+      });
+    } else if (searchType === 'specialty' && searchQuery) {
+      // Search by specialty/field
+      doctors = await prisma.doctor.findMany({
+        where: {
+          isActive: true,
+          field: { contains: searchQuery },
+        },
+        include: { schedules: true },
+      });
+    } else if (searchQuery) {
+      // Search by name (default if searchType is 'name' or not specified)
+      const searchName = searchQuery.replace(/^(Dr\.?\s*|Doctor\s*)/i, '').trim();
+      doctors = await prisma.doctor.findMany({
+        where: {
+          isActive: true,
+          name: { contains: searchName },
+        },
+        include: { schedules: true },
+      });
+    } else {
+      return 'Error: Please provide a search query (doctor name or specialty).';
+    }
+
+    if (!doctors || doctors.length === 0) {
+      return `No doctors found matching "${searchQuery || 'all'}". Please try a different search term.`;
+    }
+
+    // Format the response
+    const result = doctors.map((doc) => {
+      const scheduleStr = doc.schedules
+        .map((s) => `${s.day}: ${s.timeSlots}`)
+        .join(' | ');
+      return `- ${doc.name} (${doc.field}, ${doc.experienceYears || '?'} yrs exp): Schedule: ${scheduleStr || 'No schedule available'}`;
+    }).join('\n');
+
+    return `Found ${doctors.length} doctor(s):\n${result}`;
+  } catch (error) {
+    console.error('getDoctorSchedule error:', error);
+    return 'Error: Could not retrieve doctor information from the database. Please try again.';
+  }
+}
+
 // ─── Tool handler: bookAppointment ───
 async function handleBookAppointment(args: Record<string, unknown>) {
   const { patientName, doctorName, day, timeSlot } = args as {
@@ -279,6 +338,9 @@ export async function POST(request: Request) {
           break;
         case 'updateAppointment':
           result = await handleUpdateAppointment(args);
+          break;
+        case 'getDoctorSchedule':
+          result = await handleGetDoctorSchedule(args);
           break;
         default:
           result = `Error: Function "${fnName}" is not supported.`;

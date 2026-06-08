@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,40 +6,44 @@ datasource db {
   provider = "mysql"
 }
 
-model Doctor {
-  id                 String     @id @default(cuid())
-  name               String
-  field              String     // e.g., Cardiology, Pediatrics
-  medicalStudy       String     // e.g., MD from Harvard Medical School
-  researchBackground String     // e.g., Research on cardiovascular disease
-  email              String?    @unique
-  phone              String?
-  experienceYears    Int?
-  bio                String?
-  isActive           Boolean    @default(true)
-  schedules          Schedule[]
-  appointments       Appointment[]
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
-}
-
-model Schedule {
-  id        String   @id @default(cuid())
-  doctorId  String
-  doctor    Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-  day       String   // e.g., "Saturday", "Sunday", "Wednesday"
-  timeSlots String   // e.g., "8:30 AM - 11:20 AM, 6:00 PM - 9:00 PM"
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Appointment {
-  id          String   @id @default(cuid())
+model appointment {
+  id          String   @id
   doctorId    String
-  doctor      Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
   patientName String
   day         String
   timeSlot    String
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  updatedAt   DateTime
+  doctor      doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade, map: "Appointment_doctorId_fkey")
+
+  @@index([doctorId], map: "Appointment_doctorId_fkey")
+}
+
+model doctor {
+  id                 String        @id
+  name               String
+  field              String
+  medicalStudy       String
+  researchBackground String
+  email              String?       @unique(map: "Doctor_email_key")
+  phone              String?
+  experienceYears    Int?
+  bio                String?
+  isActive           Boolean       @default(true)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime
+  appointment        appointment[]
+  schedule           schedule[]
+}
+
+model schedule {
+  id        String   @id
+  doctorId  String
+  day       String
+  timeSlots String
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  doctor    doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade, map: "Schedule_doctorId_fkey")
+
+  @@index([doctorId], map: "Schedule_doctorId_fkey")
 }

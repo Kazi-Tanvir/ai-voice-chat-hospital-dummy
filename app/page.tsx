@@ -9,6 +9,7 @@ export const metadata: Metadata = {
 
 export const dynamic = 'force-dynamic';
 
+
 export default async function Home() {
   // Fetch doctors and their schedules
   const doctors = await prisma.doctor.findMany({
