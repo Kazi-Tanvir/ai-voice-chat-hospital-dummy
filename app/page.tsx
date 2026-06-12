@@ -3,7 +3,7 @@ import SchedulingClient from './SchedulingClient';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'CareConnect Clinic Scheduler',
+  title: 'VOXAGENT',
   description: 'Schedule and manage appointments with clinic practitioners.',
 };
 

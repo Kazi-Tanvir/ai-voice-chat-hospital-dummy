@@ -228,7 +228,7 @@ export default function SchedulingClient({
               H
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight text-white">CareConnect</h1>
+              <h1 className="text-xl font-bold tracking-tight text-white">VOXAGENT</h1>
               <p className="text-xs text-zinc-400">Hospital Doctor Scheduling System</p>
             </div>
           </div>
