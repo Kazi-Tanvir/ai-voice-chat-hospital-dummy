@@ -110,24 +110,49 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 
 For the Voice Assistant to interact with the database, Vapi needs to make webhook requests to your local server.
 
-### 1. Tunnel Your Local Server
+### 1. Create the Vapi Assistant
+
+You can set up the assistant on your Vapi account in one of two ways:
+
+#### Option A: One-Command API Import (Recommended ⚡)
+We have included the full assistant configuration (including the system instructions, transcribers, voices, and function tool schemas) in [vapi.config.json](file:///d:/02_CODE/04_TEST/VOXAGENT/ai-voice-agent-hospital/vapi.config.json). You can create the entire assistant instantly by running this command in your terminal:
+
+```bash
+curl -X POST "https://api.vapi.ai/assistant" \
+  -H "Authorization: Bearer YOUR_VAPI_PRIVATE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d @vapi.config.json
+```
+*(Replace `YOUR_VAPI_PRIVATE_API_KEY` with your private API key from Vapi Dashboard → Settings → API Keys).*
+
+The API response will return the new **Assistant ID** (in the `"id"` field). Copy this ID and paste it as `NEXT_PUBLIC_VAPI_ASSISTANT_ID` in your `.env` file, and copy your public key as `NEXT_PUBLIC_VAPI_PUBLIC_KEY`.
+
+#### Option B: Manual Setup via Vapi Dashboard UI
+1. Go to the [Vapi Dashboard](https://dashboard.vapi.ai).
+2. Click **Create Assistant** -> select a blank template.
+3. In the assistant settings, configure:
+   - **Transcriber**: Deepgram, language `bn` (Bengali).
+   - **Model**: `gpt-4o-mini` (or your choice). Copy/paste the system prompt from [vapi.config.json](file:///d:/02_CODE/04_TEST/VOXAGENT/ai-voice-agent-hospital/vapi.config.json) (under `model.messages[0].content`).
+   - **Voice**: Azure Neural Voice (e.g. `bn-BD-NabanitaNeural`) or 11Labs/Cartesia.
+4. Define the 4 custom tools (`bookAppointment`, `cancelAppointment`, `updateAppointment`, and `getDoctorSchedule`) under the **Tools** tab in the Vapi dashboard using the JSON schemas outlined in step 4 below.
+
+### 2. Tunnel Your Local Server
 Since Vapi runs in the cloud, you must expose your local development server to the internet using a tool like **ngrok**:
 ```bash
 ngrok http 3000
 ```
 Copy the generated public forwarding URL (e.g., `https://xxxx-xxxx.ngrok-free.app`).
 
-### 2. Configure the Vapi Dashboard
-1. Go to the [Vapi Dashboard](https://dashboard.vapi.ai).
-2. Select your **Assistant**.
-3. Under **Settings**, paste your ngrok URL with the webhook path into the **Server URL** field:
+### 3. Configure the Assistant Server URL
+1. Select your assistant in the Vapi Dashboard.
+2. Under **Settings**, paste your ngrok URL with the webhook path into the **Server URL** field:
    ```
    https://YOUR_NGROK_SUBDOMAIN.ngrok-free.app/api/vapi/webhook
    ```
-4. Alternatively, you can update this programmatically using the Vapi REST API (see the [vapiConfigGuide.md](file:///d:/02_CODE/04_TEST/VOXAGENT/ai-voice-agent-hospital/notes/vapiConfigGuide.md)).
+3. Alternatively, you can update this programmatically using the Vapi REST API (see the [vapiConfigGuide.md](file:///d:/02_CODE/04_TEST/VOXAGENT/ai-voice-agent-hospital/notes/vapiConfigGuide.md)).
 
-### 3. Configure Assistant Tools in Vapi
-In your Vapi assistant settings, define the following tools with the exact JSON specifications:
+### 4. Configure Assistant Tools in Vapi (If using Option B)
+If you did not import using the `curl` command (Option A), define the following tools with the exact JSON specifications in your Vapi assistant settings:
 
 #### Tool 1: `bookAppointment`
 - **Function Name**: `bookAppointment`
